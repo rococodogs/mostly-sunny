@@ -1,0 +1,7 @@
+{
+  "forecast": {
+    "api_key": ""
+  },
+  "datafield": "hourly",
+  "twentyFourHours": false
+}

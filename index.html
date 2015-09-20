@@ -1,0 +1,48 @@
+<head>
+  <link rel="stylesheet" href="css/weather-icons.min.css">
+  <style>
+  *, *:before, *:after { box-sizing: border-box; }
+  body { 
+    font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; 
+    font-size: 14px; 
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+  header { background-color: #dee; margin-bottom: 5px; padding: 5px; }
+  .wi { font-size: 3em; margin-top: 10px; margin-bottom: 10px;}
+  span[class^='weather-'] { display: block; font-size: .95em; }
+  .weather-table { border-collapse: collapse; margin: auto; width: 95%; }
+  .weather-table td { padding: .25em; text-align: center; }
+  /*.weather-time { background-color: #eee; padding: 2px; }*/
+  .debug-bar { 
+    background: #e5e5e5; 
+    bottom: 0; 
+    color: #b2b2b2;
+    font-size: 14px;
+    min-height: 20px; 
+    padding: 2px 5px;
+    position: absolute; 
+    width: 100%; 
+  }
+
+  .debug-bar div[class^='debug-'] {
+    display: inline-block;
+  }
+  </style>
+</head>
+<body>
+  <header>
+    ^_^ the weather!
+  </header>
+  <table class="weather-table">
+    <tbody></tbody>
+  </table>
+
+  <footer class="debug-bar">
+    <div class="debug-status"></div>
+    <div class="debug-latlong"></div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
