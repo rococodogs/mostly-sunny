@@ -5,12 +5,15 @@ var BrowserWindow = require('browser-window')
 var Menu = require('menu')
 var config = require('./config.json')
 var forecastApiKey = config.forecast.api_key
+var debug = require('debug')('mostly-sunny')
 
 var Forecast = require('./forecast')
 var weather = new Forecast(forecastApiKey)
 
 var DEFAULT_NUMBER_OF_RESULTS = 7
+var LOOKUP_INTERVAL_RATE = 1000 * 60 * 15 // 15 minutes
 
+var suspendedTimestamp = null
 var globalCoords
 var lookupInterval
 var settingsWindow
@@ -56,7 +59,29 @@ ipc.on('window:open-menu', function () {
 })
 
 mb.on('ready', function () {
-  lookupInterval = setInterval(queryWeatherData, 90000)
+  lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
+
+  // if the app is still running when the computer goes on stand-by, we'll
+  // want to automatically resume when it comes back online
+  var powerMonitor = require('power-monitor')
+  powerMonitor.on('suspend', function () {
+    clearInterval(lookupInterval)
+    lookupInterval = null
+    suspendedTimestamp = Date.now()
+  })
+
+  powerMonitor.on('resume', function () {
+    var now = Date.now()
+    var requeryThreshold = 1000 * 60 * 5 // 5 minute threshold
+    var timeSince = now - (suspendedTimestamp || 0)
+
+    debug('resuming after %d minutes', timeSince / 60000)
+    if (timeSince > requeryThreshold) queryWeatherData()
+
+    suspendedTimestamp = null
+
+    lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
+  })
 })
 
 mb.app.on('window-all-closed', function () {
