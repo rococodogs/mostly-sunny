@@ -2,6 +2,7 @@ var menubar = require('menubar')
 var ipc = require('ipc')
 var path = require('path')
 var BrowserWindow = require('browser-window')
+var Menu = require('menu')
 var config = require('./config.json')
 var forecastApiKey = config.forecast.api_key
 
@@ -21,6 +22,20 @@ var mb = menubar({
   preloadWindow: true
 })
 
+var contextMenu = Menu.buildFromTemplate([
+  {
+    label: 'Refresh',
+    click: function () { queryWeatherData() }
+  },
+  {
+    type: 'separator'  
+  },
+  {
+    label: 'Quit',
+    click: function () { mb.app.quit() }
+  }
+])
+
 ipc.on('window:coords', function (ev, coords) {
   globalCoords = coords
   queryWeatherData()
@@ -34,6 +49,10 @@ ipc.on('window:open-settings', function () {
     settingsWindow = null
     mb.showWindow()
   })
+})
+
+ipc.on('window:open-menu', function () {
+  contextMenu.popup(mb.window)
 })
 
 mb.on('ready', function () {

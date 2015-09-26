@@ -1,14 +1,15 @@
 var ipc = require('ipc')
 var config = require('./get-config.js')
+
+// elements
 var header = document.querySelector('header')
 var debugStatus = document.querySelector('.debug-status')
 var debugLatLong = document.querySelector('.debug-latlong')
 var tableBody = document.querySelector('.weather-table tbody')
-var settingsButton = document.querySelector('.settings-button')
+var menuButton = document.querySelector('.menu-button')
 
-settingsButton.addEventListener('click', function () {
-  require('remote').require('app').quit()
-  // ipc.send('window:open-settings')
+menuButton.addEventListener('click', function () {
+  ipc.send('window:open-menu')
 })
 
 ipc.on('app:get-coords', function () {
