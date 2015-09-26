@@ -1,14 +1,27 @@
 {
   "main": "app.js",
   "version": "0.0.1",
+  "description": "An Electron-based task bar weather application",
+  "scripts": {
+    "start": "./node_modules/.bin/electron .",
+    "clean": "rm -rf dist",
+    "pack": "npm run clean && ./node_modules/.bin/electron-packager ./ 'Mostly Sunny' --platform=darwin --arch=x64 --version=0.33.0 --icon=icons/logo-transparent.icns --ignore=\"node_modules/(electron-packager|electron-prebuilt)\" --out=dist/osx"
+  },
   "dependencies": {
     "electron-packager": "^5.1.0",
     "electron-prebuilt": "^0.33.0",
     "menubar": "^2.2.1"
   },
-  "scripts": {
-    "start": "./node_modules/.bin/electron .",
-    "clean": "rm -rf dist",
-    "pack": "npm run clean && ./node_modules/.bin/electron-packager ./ 'Mostly Sunny' --platform=darwin --arch=x64 --version=0.33.0 --icon=icons/logo-transparent.icns --ignore=\"node_modules/(electron-packager|electron-prebuilt)\" --out=dist/osx"
+  "devDependencies": {
+    "debug": "^2.2.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malantonio/mostly-sunny"
+  },
+  "author": "Adam Malantonio <adam.malantonio@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/malantonio/mostly-sunny/issues"
   }
 }
