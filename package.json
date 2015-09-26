@@ -1,10 +1,14 @@
 {
   "main": "app.js",
+  "version": "0.0.1",
   "dependencies": {
+    "electron-packager": "^5.1.0",
     "electron-prebuilt": "^0.33.0",
     "menubar": "^2.2.1"
   },
   "scripts": {
-    "start": "./node_modules/.bin/electron ."
+    "start": "./node_modules/.bin/electron .",
+    "clean": "rm -rf dist",
+    "pack": "npm run clean && ./node_modules/.bin/electron-packager ./ 'Mostly Sunny' --platform=darwin --arch=x64 --version=0.33.0 --icon=icons/logo-transparent.icns --ignore=\"node_modules/(electron-packager|electron-prebuilt)\" --out=dist/osx"
   }
 }
