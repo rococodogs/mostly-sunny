@@ -1,16 +1,22 @@
 var ipc = require('ipc')
-var config = require('./config.json')
+var config = require('./get-config.js')
 var header = document.querySelector('header')
 var debugStatus = document.querySelector('.debug-status')
 var debugLatLong = document.querySelector('.debug-latlong')
 var tableBody = document.querySelector('.weather-table tbody')
+var settingsButton = document.querySelector('.settings-button')
 
-ipc.on('get-coords', function () {
+settingsButton.addEventListener('click', function () {
+  require('remote').require('app').quit()
+  // ipc.send('window:open-settings')
+})
+
+ipc.on('app:get-coords', function () {
   console.log('window got `get-coords` message')
   getCoords()
 })
 
-ipc.on('weather-data', function (set) {
+ipc.on('app:weather-data', function (set) {
   console.log('window received `weather-data`')
   if (set.data.length === 0) console.log('nothing in this bundle!')
   header.innerText = set.summary
@@ -26,7 +32,7 @@ function getCoords () {
   navigator.geolocation.getCurrentPosition(function (pos) {
     debugStatus.innerText = ''
     debugLatLong.innerText = pos.coords.latitude + ',' + pos.coords.longitude
-    ipc.send('coords', [pos.coords.latitude, pos.coords.longitude])
+    ipc.send('window:coords', [pos.coords.latitude, pos.coords.longitude])
   })  
 }
 

@@ -1,6 +1,7 @@
 var menubar = require('menubar')
 var ipc = require('ipc')
 var path = require('path')
+var BrowserWindow = require('browser-window')
 var config = require('./config.json')
 var forecastApiKey = config.forecast.api_key
 
@@ -11,6 +12,7 @@ var DEFAULT_NUMBER_OF_RESULTS = 7
 
 var globalCoords
 var lookupInterval
+var settingsWindow
 
 var mb = menubar({
   icon: path.join(__dirname, 'icons', 'icon@1x.png'),
@@ -19,9 +21,19 @@ var mb = menubar({
   preloadWindow: true
 })
 
-ipc.on('coords', function (ev, coords) {
+ipc.on('window:coords', function (ev, coords) {
   globalCoords = coords
   queryWeatherData()
+})
+
+ipc.on('window:open-settings', function () {
+  mb.setOption('always-on-top', true)
+  settingsWindow = new BrowserWindow({height: 300, width: 300})
+  settingsWindow.loadUrl('file://' + __dirname + '/settings.html')
+  settingsWindow.on('closed', function () {
+    settingsWindow = null
+    mb.showWindow()
+  })
 })
 
 mb.on('ready', function () {
@@ -38,7 +50,7 @@ function queryWeatherData () {
     if (err) return [] /* i dunno, do something */
 
     var dataset = getDataset(config.datafield, data)
-    return mb.window.webContents.send('weather-data', dataset)
+    return mb.window.webContents.send('app:weather-data', dataset)
   })
 }
 
