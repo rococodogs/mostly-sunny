@@ -1,5 +1,6 @@
 var menubar = require('menubar')
 var ipc = require('ipc')
+var path = require('path')
 var config = require('./config.json')
 var forecastApiKey = config.forecast.api_key
 
@@ -12,7 +13,7 @@ var globalCoords
 var lookupInterval
 
 var mb = menubar({
-  icon: './icons/icon@1x.png',
+  icon: path.join(__dirname, 'icons', 'icon@1x.png'),
   height: 175,
   width: 550,
   preloadWindow: true
