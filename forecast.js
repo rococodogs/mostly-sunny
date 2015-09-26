@@ -1,7 +1,7 @@
 'use strict'
 
-const https = require('https')
-const BASE_URL = 'https://api.forecast.io/forecast'
+var https = require('https')
+var BASE_URL = 'https://api.forecast.io/forecast'
 
 module.exports = Forecast
 
@@ -15,18 +15,18 @@ Forecast.prototype.get = function getWeather (latitude, longitude, time, callbac
     time = null
   }
 
-  let params = [latitude, longitude]
+  var params = [latitude, longitude]
   if (time) params.push(time)
 
-  let url = BASE_URL + '/' + this.key + '/' + params.join(',')
+  var url = BASE_URL + '/' + this.key + '/' + params.join(',')
 
   https.get(url, function (res) {
-    let body = ''
+    var body = ''
 
     res.setEncoding('utf-8')
     res.on('data', function (data) { body += data })
     res.on('end', function () { 
-      let parsed = JSON.parse(body)
+      var parsed = JSON.parse(body)
       if (parsed.error) {
         var err = new Error(parsed.error) 
         err.code = parsed.code
