@@ -5,7 +5,6 @@ var BrowserWindow = require('browser-window')
 var Menu = require('menu')
 var config = require('./config.json')
 var forecastApiKey = config.forecast.api_key
-var debug = require('debug')('mostly-sunny')
 
 var Forecast = require('./forecast')
 var weather = new Forecast(forecastApiKey)
@@ -15,8 +14,16 @@ var LOOKUP_INTERVAL_RATE = 1000 * 60 * 15 // 15 minutes
 
 var suspendedTimestamp = null
 var globalCoords
+var latestDataset
 var lookupInterval
 var settingsWindow
+var settings
+
+try { settings = require(__dirname + '/local/settings.json') }
+catch (e) {
+  settings = require(__dirname + '/default-settings.json')
+  saveSettings()
+}
 
 var mb = menubar({
   icon: path.join(__dirname, 'icons', 'icon@1x.png'),
@@ -44,16 +51,6 @@ ipc.on('window:coords', function (ev, coords) {
   queryWeatherData()
 })
 
-ipc.on('window:open-settings', function () {
-  mb.setOption('always-on-top', true)
-  settingsWindow = new BrowserWindow({height: 300, width: 300})
-  settingsWindow.loadUrl('file://' + __dirname + '/settings.html')
-  settingsWindow.on('closed', function () {
-    settingsWindow = null
-    mb.showWindow()
-  })
-})
-
 ipc.on('window:open-menu', function () {
   contextMenu.popup(mb.window)
 })
@@ -74,8 +71,6 @@ mb.on('ready', function () {
     var now = Date.now()
     var requeryThreshold = 1000 * 60 * 5 // 5 minute threshold
     var timeSince = now - (suspendedTimestamp || 0)
-
-    debug('resuming after %d minutes', timeSince / 60000)
     if (timeSince > requeryThreshold) queryWeatherData()
 
     suspendedTimestamp = null
@@ -93,31 +88,82 @@ function queryWeatherData () {
   return weather.get(globalCoords[0], globalCoords[1], function (err, data) {
     if (err) return [] /* i dunno, do something */
 
-    var dataset = getDataset(config.datafield, data)
+    var dataset = latestDataset = getDataset(config.datafield, data)
     return mb.window.webContents.send('app:weather-data', dataset)
   })
 }
 
-function getDataset (field, limit, data) {
+function getDataset (field, data, limit) {
+  var clean = {data: []}
   var validFields = ['minutely', 'hourly', 'daily']
-  if (validFields.indexOf(field) === -1) return out
+  if (validFields.indexOf(field) === -1) return clean
 
-  if (typeof limit === 'object') {
-    data = limit
-    limit = DEFAULT_NUMBER_OF_RESULTS
-  }
+  if (limit === void 0) limit = DEFAULT_NUMBER_OF_RESULTS
 
+  // get the specific field we're pulling from
   var everything = data[field]
-  var clone = {}
 
-  for (var k in everything) {
-    if (k === 'data') clone[k] = []
-    else clone[k] = everything[k]
-  }
-
+  // munge-a-lunge
   for (var i = 0; i < limit; i++) {
-    clone.data.push(everything.data[i])
+    var point = everything.data[i]
+    var updated = {}
+
+    // js needs microseconds on the timestamp
+    var timestamp = new Date(Number(point.time + '000'))
+    var hours = timestamp.getHours()
+    var ampm = hours < 12 ? 'am' : 'pm'
+
+    if (!settings.twenty_four_hours) {
+      var d = hours % 12
+      if (d === 0) d = 12
+      hours = d
+    }
+
+    var minutes = timestamp.getMinutes()
+    if (minutes < 10) minutes = '0' + minutes
+    
+    var timeString = hours + ':' + minutes
+    if (!settings.twenty_four_hours) timeString += ampm
+
+    updated['time'] = timeString
+    updated['time_raw'] = point.time
+
+    var tempRaw = point.temperature
+    if (settings.temp_unit === 'c') tempRaw = ftoc(tempRaw)
+
+    var tempWholeNumber = Math.floor(tempRaw)
+    var round = (tempRaw - tempWholeNumber) >= .5 ? Math.ceil : Math.floor
+    var temp = round(tempRaw)
+    
+    updated['temperature'] = temp
+
+    updated['summary'] = point.summary
+    updated['icon'] = point.icon
+
+    clean.data.push(updated)
   }
 
-  return clone
+  clean['last_update'] = Date.now()
+  return clean
+}
+
+// Forecast only provides Fahrenheit temps
+function ftoc (temp) { return (temp - 32) / 1.8 }
+
+function handleSetApiKey () {
+  var opts = {
+    type: 'question',
+    title: 'Forecast.io API Key',
+    message: 'Enter your Forecast.io API key'
+  }
+
+  var cb = function callback (response) {
+    console.log(response)
+  }
+
+  require('dialog').showMessageBox(mb.window, opts, cb)
+}
+
+function saveSettings () {
+  require('fs').writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))
 }
