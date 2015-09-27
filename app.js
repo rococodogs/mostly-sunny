@@ -37,9 +37,20 @@ var contextMenu = Menu.buildFromTemplate([
     label: 'Refresh',
     click: function () { queryWeatherData() }
   },
+  { type: 'separator' },
   {
-    type: 'separator'  
+    label: 'Fahrenheit',
+    type: 'radio',
+    checked: !settings.is_celsius,
+    click: updateToFahrenheit
   },
+  {
+    label: 'Celsius',
+    type: 'radio',
+    click: updateToCelsius,
+    checked: settings.is_celsius
+  },
+  { type: 'separator' },
   {
     label: 'Quit',
     click: function () { mb.app.quit() }
@@ -100,6 +111,12 @@ function getDataset (field, data, limit) {
 
   if (limit === void 0) limit = DEFAULT_NUMBER_OF_RESULTS
 
+  // only copy the top-level fields
+  for (var k in data) {
+    if (validFields.indexOf(k) > -1) continue
+    else clean[k] = data[k]
+  }
+
   // get the specific field we're pulling from
   var everything = data[field]
 
@@ -128,41 +145,58 @@ function getDataset (field, data, limit) {
     updated['time'] = timeString
     updated['time_raw'] = point.time
 
-    var tempRaw = point.temperature
-    if (settings.temp_unit === 'c') tempRaw = ftoc(tempRaw)
-
-    var tempWholeNumber = Math.floor(tempRaw)
-    var round = (tempRaw - tempWholeNumber) >= .5 ? Math.ceil : Math.floor
-    var temp = round(tempRaw)
-    
-    updated['temperature'] = temp
+    var temp = point.temperature
+    if (settings.is_celsius) temp = ftoc(temp)
+    updated['temperature'] = cleanTemp(temp)
 
     updated['summary'] = point.summary
     updated['icon'] = point.icon
 
+    updated['unit'] = settings.is_celsius ? 'Celsius' : 'Fahrenheit'
+    updated['unit_abbr'] = settings.is_celsius ? 'C' : 'F'
+
     clean.data.push(updated)
   }
 
+  clean['summary'] = data.currently.summary
   clean['last_update'] = Date.now()
+
   return clean
 }
 
 // Forecast only provides Fahrenheit temps
 function ftoc (temp) { return (temp - 32) / 1.8 }
+function ctof (temp) { return (temp * 1.8) + 32 }
 
-function handleSetApiKey () {
-  var opts = {
-    type: 'question',
-    title: 'Forecast.io API Key',
-    message: 'Enter your Forecast.io API key'
-  }
-
-  var cb = function callback (response) {
-    console.log(response)
-  }
-
-  require('dialog').showMessageBox(mb.window, opts, cb)
+function cleanTemp (tempRaw) {
+  var tempWholeNumber = Math.floor(tempRaw)
+  var round = (tempRaw - tempWholeNumber) >= .5 ? Math.ceil : Math.floor
+  return round(tempRaw)
 }
+
+function convertTemp (to_celsius) {
+  var wasCelsius = settings.is_celsius
+  if (wasCelsius === to_celsius) return
+
+  var data = latestDataset.data
+  var conversion = to_celsius ? ftoc : ctof
+
+  var updated = data.map(function (set) {
+    set.temperature = cleanTemp(conversion(set.temperature))
+    set.unit = to_celsius ? 'Celsius' : 'Fahrenheit'
+    set.unit_abbr = to_celsius ? 'C' : 'F'
+    return set
+  })
+
+  latestDataset.data = data
+  mb.window.webContents.send('app:weather-data', latestDataset)
+
+  settings.is_celsius = !settings.is_celsius
+  saveSettings()
+}
+
+function updateToFahrenheit () { return convertTemp(false) }
+function updateToCelsius () { return convertTemp(true) }
 
 function saveSettings () {
   require('fs').writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))

@@ -17,7 +17,6 @@ menuButton.addEventListener('click', function () {
 ipc.on('app:get-coords', getCoords)
 
 ipc.on('app:weather-data', function (set) {
-  console.log('window received `weather-data`')
   if (set.data.length === 0) console.log('nothing in this bundle!')
   header.innerText = set.summary
 
@@ -43,6 +42,7 @@ function fillTable (dataset) {
   td.innerHTML += '<span class="weather-time">' + dataset.time + '</span>'
                 + '<i class="weather-icon wi wi-forecast-io-' + dataset.icon + '" '
                 + 'title="' + dataset.summary +'"></i>'
-                + '<span class="weather-temp">' + dataset.temperature + '&deg;</span>'
+                + '<span class="weather-temp">' + dataset.temperature + '&deg; '
+                + dataset.unit_abbr + '</span>'
   tableBody.appendChild(td)
 }

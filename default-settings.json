@@ -1,5 +1,5 @@
 {
-  "temp_unit": "f",
+  "is_celsius": false,
   "data_field": "hourly",
   "twenty_four_hours": false
 }
