@@ -4,7 +4,7 @@ var path = require('path')
 var BrowserWindow = require('browser-window')
 var Menu = require('menu')
 var Forecast = require('./forecast')
-var weather = new Forecast(forecastApiKey)
+var weather
 
 var DEFAULT_NUMBER_OF_RESULTS = 7
 var LOOKUP_INTERVAL_RATE = 1000 * 60 * 15 // 15 minutes
@@ -81,6 +81,8 @@ mb.app.on('before-quit', function () {
 
 function init () {
   mb.window.webContents.send('app:has-api-key')
+  weather = new Forecast(settings.forecast_api_key)
+
   lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
 
   // if the app is still running when the computer goes on stand-by, we'll
@@ -108,7 +110,7 @@ function queryWeatherData () {
   return weather.get(globalCoords[0], globalCoords[1], function (err, data) {
     if (err) return [] /* i dunno, do something */
 
-    var dataset = latestDataset = getDataset(settings.datafield, data)
+    var dataset = latestDataset = getDataset(settings.data_field, data)
     return mb.window.webContents.send('app:weather-data', dataset)
   })
 }
