@@ -57,6 +57,18 @@ var contextMenu = Menu.buildFromTemplate([
   }
 ])
 
+ipc.on('window:check-api-key', function (ev) {
+  if (!settings.forecast_api_key) {
+    mb.window.webContents.send('app:needs-api-key')
+  } else init()
+})
+
+ipc.on('window:api-key-submit', function (ev, key) {
+  settings.forecast_api_key = key
+  saveSettings()
+  mb.window.reload()
+})
+
 ipc.on('window:coords', function (ev, coords) {
   globalCoords = coords
   queryWeatherData()
@@ -66,7 +78,12 @@ ipc.on('window:open-menu', function () {
   contextMenu.popup(mb.window)
 })
 
-mb.on('ready', function () {
+mb.app.on('before-quit', function () {
+  clearInterval(lookupInterval)
+})
+
+function init () {
+  mb.window.webContents.send('app:has-api-key')
   lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
 
   // if the app is still running when the computer goes on stand-by, we'll
@@ -88,12 +105,7 @@ mb.on('ready', function () {
 
     lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
   })
-})
-
-mb.app.on('window-all-closed', function () {
-  clearInterval(lookupInterval)
-  mb.app.quit()
-})
+}
 
 function queryWeatherData () {
   return weather.get(globalCoords[0], globalCoords[1], function (err, data) {

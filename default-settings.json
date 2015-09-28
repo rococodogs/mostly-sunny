@@ -1,5 +1,6 @@
 {
   "is_celsius": false,
   "data_field": "hourly",
-  "twenty_four_hours": false
+  "twenty_four_hours": false,
+  "forecast_api_key": null
 }

@@ -20,7 +20,7 @@
   .weather-table td { padding: .25em; text-align: center; }
   .weather-table .wi { font-size: 3em; margin-top: 20px; margin-bottom: 10px;}
   .debug-bar { 
-    background: #e5e5e5; 
+    background: #e5e5e5;
     bottom: 0; 
     color: #a1a1a1;
     font-size: 14px;
@@ -32,12 +32,48 @@
 
   .debug-bar div[class^='debug-'] { display: inline-block; }
   .menu-button { cursor: pointer; float: right; }
+  .api-key-input-box {
+    margin: auto;
+    width: 90%;
+  }
+
+  .api-key-text a {
+    color: #0000ff;
+  }
+
+  .api-key-input {
+    font-size: 1em;
+    width: 80%;
+  }
+
+  .api-key button {
+    background: #328f9c;
+    border: 1px solid #0a6774;
+    color: #fff;
+    cursor: pointer;
+    float: right;
+    font-size: 1em;
+    vertical-align: top;
+    width: 19%;
+  }
   </style>
 </head>
 <body>
   <header>
     ^_^ the weather!
   </header>
+  <div class="api-key-input-box">
+    <p class="api-key-text">This is some text about how you need to put
+    in an API key! It'll look nice and fancy and have a 
+    <a href="https://developer.forecast.io/">link to the Forecast API 
+    registration page</a></p>
+
+    <p class="api-key">
+      <input class="api-key-input" 
+        placeholder="Paste your Forecast.io API key here!" 
+      ><button onclick="handleApiKeySubmit()">Add</button>
+    </p>
+  </div>
   <table class="weather-table">
     <tbody></tbody>
   </table>
