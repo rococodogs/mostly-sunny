@@ -3,9 +3,6 @@ var ipc = require('ipc')
 var path = require('path')
 var BrowserWindow = require('browser-window')
 var Menu = require('menu')
-var config = require('./config.json')
-var forecastApiKey = config.forecast.api_key
-
 var Forecast = require('./forecast')
 var weather = new Forecast(forecastApiKey)
 
@@ -111,7 +108,7 @@ function queryWeatherData () {
   return weather.get(globalCoords[0], globalCoords[1], function (err, data) {
     if (err) return [] /* i dunno, do something */
 
-    var dataset = latestDataset = getDataset(config.datafield, data)
+    var dataset = latestDataset = getDataset(settings.datafield, data)
     return mb.window.webContents.send('app:weather-data', dataset)
   })
 }
