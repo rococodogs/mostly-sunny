@@ -3,6 +3,7 @@ var ipc = require('ipc')
 var path = require('path')
 var BrowserWindow = require('browser-window')
 var Menu = require('menu')
+var fs = require('fs')
 var Forecast = require('./forecast')
 var weather
 
@@ -36,16 +37,45 @@ var contextMenu = Menu.buildFromTemplate([
   },
   { type: 'separator' },
   {
-    label: 'Fahrenheit',
-    type: 'radio',
-    checked: !settings.is_celsius,
-    click: updateToFahrenheit
-  },
-  {
-    label: 'Celsius',
-    type: 'radio',
-    click: updateToCelsius,
-    checked: settings.is_celsius
+    label: 'Settings',
+    submenu: [
+      {
+        label: 'Reset Forecast API Key',
+        click: resetApiKey
+      },
+      { type: 'separator' },
+      {
+        label: 'Temperature Units',
+        enabled: false
+      },
+      {
+      label: 'Fahrenheit',
+      type: 'radio',
+      checked: !settings.is_celsius,
+      click: updateToFahrenheit
+      },
+      {
+        label: 'Celsius',
+        type: 'radio',
+        click: updateToCelsius,
+        checked: settings.is_celsius
+      },
+      { type: 'separator' },
+      {
+        label: 'Time Style',
+        enabled: false
+      },
+      {
+        label: '11:45pm',
+        type: 'radio',
+        checked: !settings.twenty_four_hours
+      },
+      {
+        label: '23:45',
+        type: 'radio',
+        checked: settings.twnety_four_hours
+      }
+    ]
   },
   { type: 'separator' },
   {
@@ -68,11 +98,15 @@ ipc.on('window:api-key-submit', function (ev, key) {
 
 ipc.on('window:coords', function (ev, coords) {
   globalCoords = coords
-  queryWeatherData()
+  queryWeatherData(globalCoords)
 })
 
 ipc.on('window:open-menu', function () {
   contextMenu.popup(mb.window)
+})
+
+mb.on('ready', function () {
+  mb.window.webContents.send('app:ready')
 })
 
 mb.app.on('before-quit', function () {
@@ -81,7 +115,6 @@ mb.app.on('before-quit', function () {
 
 function init () {
   mb.window.webContents.send('app:has-api-key')
-  weather = new Forecast(settings.forecast_api_key)
 
   lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
 
@@ -106,8 +139,10 @@ function init () {
   })
 }
 
-function queryWeatherData () {
-  return weather.get(globalCoords[0], globalCoords[1], function (err, data) {
+function queryWeatherData (coords) {
+  if (!coords) coords = globalCoords
+  var weather = new Forecast(settings.forecast_api_key)
+  return weather.get(coords[0], coords[1], function (err, data) {
     if (err) return [] /* i dunno, do something */
 
     var dataset = latestDataset = getDataset(settings.data_field, data)
@@ -206,9 +241,16 @@ function convertTemp (to_celsius) {
   saveSettings()
 }
 
+function resetApiKey () {
+  settings.forecast_api_key = null
+  saveSettings()
+  mb.window.reload()
+}
+
+function saveSettings () {
+  fs.writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))
+}
+
 function updateToFahrenheit () { return convertTemp(false) }
 function updateToCelsius () { return convertTemp(true) }
 
-function saveSettings () {
-  require('fs').writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))
-}

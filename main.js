@@ -28,7 +28,9 @@ ipc.on('app:has-api-key', function () {
   getCoords()
 })
 
-ipc.on('app:needs-api-key', function () {})
+ipc.on('app:needs-api-key', function () {
+  apiKeyInput.style.display = 'block'
+})
 
 menuButton.addEventListener('click', function () {
   ipc.send('window:open-menu')
