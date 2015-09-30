@@ -68,12 +68,18 @@ var contextMenu = Menu.buildFromTemplate([
       {
         label: '11:45pm',
         type: 'radio',
-        checked: !settings.twenty_four_hours
+        checked: !settings.twenty_four_hours,
+        click: function () {
+          convertTime(false)
+        }
       },
       {
         label: '23:45',
         type: 'radio',
-        checked: settings.twnety_four_hours
+        checked: settings.twenty_four_hours,
+        click: function () {
+          convertTime(true)
+        }
       }
     ]
   },
@@ -171,22 +177,7 @@ function getDataset (field, data, limit) {
     var point = everything.data[i]
     var updated = {}
 
-    // js needs microseconds on the timestamp
-    var timestamp = new Date(Number(point.time + '000'))
-    var hours = timestamp.getHours()
-    var ampm = hours < 12 ? 'am' : 'pm'
-
-    if (!settings.twenty_four_hours) {
-      var d = hours % 12
-      if (d === 0) d = 12
-      hours = d
-    }
-
-    var minutes = timestamp.getMinutes()
-    if (minutes < 10) minutes = '0' + minutes
-    
-    var timeString = hours + ':' + minutes
-    if (!settings.twenty_four_hours) timeString += ampm
+    var timeString = buildTimeString(point.time, settings.twenty_four_hours)
 
     updated['time'] = timeString
     updated['time_raw'] = point.time
@@ -220,25 +211,63 @@ function cleanTemp (tempRaw) {
   return round(tempRaw)
 }
 
-function convertTemp (to_celsius) {
+function convertTemp (toCelsius) {
   var wasCelsius = settings.is_celsius
-  if (wasCelsius === to_celsius) return
+  if (wasCelsius === toCelsius) return
 
-  var data = latestDataset.data
-  var conversion = to_celsius ? ftoc : ctof
+  var conversion = toCelsius ? ftoc : ctof
 
-  var updated = data.map(function (set) {
+  latestDataset.data = latestDataset.data.map(function (set) {
     set.temperature = cleanTemp(conversion(set.temperature))
-    set.unit = to_celsius ? 'Celsius' : 'Fahrenheit'
-    set.unit_abbr = to_celsius ? 'C' : 'F'
+    set.unit = toCelsius ? 'Celsius' : 'Fahrenheit'
+    set.unit_abbr = toCelsius ? 'C' : 'F'
     return set
   })
 
-  latestDataset.data = data
   mb.window.webContents.send('app:weather-data', latestDataset)
 
   settings.is_celsius = !settings.is_celsius
   saveSettings()
+}
+
+function updateToFahrenheit () { return convertTemp(false) }
+function updateToCelsius () { return convertTemp(true) }
+
+function convertTime (toTwentyFour) {
+  var wasTwentyFour = settings.twenty_four_hours
+  if (wasTwentyFour === toTwentyFour) return
+
+  latestDataset.data = latestDataset.data.map(function (set) {
+    set['time'] = buildTimeString(set['time_raw'], toTwentyFour)
+    return set
+  })
+
+  mb.window.webContents.send('app:weather-data', latestDataset)
+
+  settings.twenty_four_hours = !settings.twenty_four_hours
+  saveSettings()
+}
+
+function buildTimeString (ts, twentyFourHours) {
+  if (twentyFourHours === void 0) twentyFourHours = settings.twenty_four_hours
+
+  var date = new Date(Number(ts + '000'))
+  var hours = date.getHours()
+  var ampm = hours < 12 ? 'am' : 'pm'
+
+  if (!twentyFourHours) {
+    var d = hours % 12
+    if (d === 0) d = 12
+    hours = d
+  }
+
+  var minutes = date.getMinutes()
+  if (minutes < 10) minutes = '0' + minutes
+  
+  var timeString = hours + ':' + minutes
+  if (!twentyFourHours) timeString += ampm
+
+  return timeString
 }
 
 function resetApiKey () {
@@ -251,6 +280,4 @@ function saveSettings () {
   fs.writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))
 }
 
-function updateToFahrenheit () { return convertTemp(false) }
-function updateToCelsius () { return convertTemp(true) }
 
