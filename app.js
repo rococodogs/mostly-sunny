@@ -145,15 +145,19 @@ function init () {
     suspendedTimestamp = Date.now()
   })
 
+  // wait 10 seconds to reconnect to internet before querying data
+  // + setting up interval
   powerMonitor.on('resume', function () {
-    var now = Date.now()
-    var requeryThreshold = 1000 * 60 * 5 // 5 minute threshold
-    var timeSince = now - (suspendedTimestamp || 0)
-    if (timeSince > requeryThreshold) queryWeatherData()
+    setTimeout(function restart() {
+      var now = Date.now()
+      var requeryThreshold = 1000 * 60 * 5 // 5 minute threshold
+      var timeSince = now - (suspendedTimestamp || 0)
+      if (timeSince > requeryThreshold) queryWeatherData()
 
-    suspendedTimestamp = null
+      suspendedTimestamp = null
 
-    lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
+      lookupInterval = setInterval(queryWeatherData, LOOKUP_INTERVAL_RATE)
+    }, 10000)
   })
 }
 
