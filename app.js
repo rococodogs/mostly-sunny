@@ -5,6 +5,8 @@ var BrowserWindow = require('browser-window')
 var Menu = require('menu')
 var fs = require('fs')
 var Forecast = require('./forecast')
+var menuTemplate = require(__dirname + '/menu-opts')
+
 var weather
 
 var DEFAULT_NUMBER_OF_RESULTS = 7
@@ -112,6 +114,9 @@ ipc.on('window:open-menu', function () {
 })
 
 mb.on('ready', function () {
+  var menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+
   mb.window.webContents.send('app:ready')
 })
 
