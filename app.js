@@ -7,7 +7,7 @@ var fs = require('fs')
 var Forecast = require('./forecast')
 var menuTemplate = require(__dirname + '/menu-opts')
 
-var weather
+var weatherClient
 
 var DEFAULT_NUMBER_OF_RESULTS = 7
 var LOOKUP_INTERVAL_RATE = 1000 * 60 * 15 // 15 minutes
@@ -33,6 +33,13 @@ var mb = menubar({
 })
 
 var contextMenu = Menu.buildFromTemplate([
+  {
+    label: 'Mostly Sunny home',
+    click: function () {
+      require('shell').openExternal('https://github.com/malantonio/mostly-sunny')
+    }
+  },
+  { type: 'separator' },
   {
     label: 'Refresh',
     click: function () { queryWeatherData() }
@@ -152,8 +159,8 @@ function init () {
 
 function queryWeatherData (coords) {
   if (!coords) coords = globalCoords
-  var weather = new Forecast(settings.forecast_api_key)
-  return weather.get(coords[0], coords[1], function (err, data) {
+  var weatherClient = new Forecast(settings.forecast_api_key)
+  return weatherClient.get(coords[0], coords[1], function (err, data) {
     if (err) return [] /* i dunno, do something */
 
     var dataset = latestDataset = getDataset(settings.data_field, data)
@@ -284,5 +291,3 @@ function resetApiKey () {
 function saveSettings () {
   fs.writeFileSync(__dirname + '/local/settings.json', JSON.stringify(settings))
 }
-
-
