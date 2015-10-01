@@ -1,8 +1,10 @@
-![](icons/logo-transparent.png)
+![](https://rawgit.com/malantonio/mostly-sunny/master/icons/logo-transparent.png)
 
 # mostly sunny
 
-it's an [electron][electron]-based weather app. super work-in-progress. works on OS X for sure, probably works alright on windows?
+it's an [electron][electron]-based weather app. super work-in-progress. works on OS X for sure, maybe works alright on windows?
+
+![](https://rawgit.com/malantonio/mostly-sunny/master/screen-shot.png)
 
 ```bash
 git clone https://github.com/malantonio/mostly-sunny
