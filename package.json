@@ -5,7 +5,8 @@
   "scripts": {
     "start": "./node_modules/.bin/electron .",
     "clean": "rm -rf dist",
-    "pack": "npm run clean && ./node_modules/.bin/electron-packager ./ 'Mostly Sunny' --platform=darwin --arch=x64 --version=0.33.0 --icon=icons/logo-transparent.icns --ignore=\"(node_modules/(electron-packager|electron-prebuilt))|local/settings.json\" --out=dist/osx"
+    "pack": "npm run clean && ./node_modules/.bin/electron-packager ./ 'Mostly Sunny' --platform=darwin --arch=x64 --version=0.33.0 --icon=icons/logo-transparent.icns --ignore=\"(node_modules/(electron-packager|electron-prebuilt))|local/settings.json\" --out=dist/osx",
+    "open-dist": "open ./dist/osx/'Mostly Sunny-darwin-x64'/'Mostly Sunny.app'"
   },
   "dependencies": {
     "electron-packager": "^5.1.0",
