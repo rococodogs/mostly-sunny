@@ -1,6 +1,6 @@
 {
   "main": "app.js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "An Electron-based task bar weather application",
   "scripts": {
     "start": "./node_modules/.bin/electron .",
