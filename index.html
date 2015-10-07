@@ -57,6 +57,20 @@
     vertical-align: top;
     width: 19%;
   }
+
+  .error:not(:empty) {
+    background-color: #ff6f8f;
+    border: 5px solid #ee2b4f;
+    border-radius: 10px;
+    color: #fff;
+    margin: auto;
+    padding: 10px;
+    width: 95%;
+  }
+
+  .error blockquote {
+    color: #000;
+  }
   </style>
 </head>
 <body>
@@ -75,13 +89,16 @@
       ><button onclick="handleApiKeySubmit()">Add</button>
     </p>
   </div>
+  
+  <div class="error"></div>
+
   <table class="weather-table">
     <tbody></tbody>
   </table>
 
   <footer class="debug-bar">
-    <div class="debug-status"></div>
     <div class="debug-latlong"></div>
+    <div class="debug-status"></div>
     <button class="menu-button">
       <i class="wi wi-alien" title="Menu"></i>
     </button>

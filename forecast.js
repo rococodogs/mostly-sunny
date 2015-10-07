@@ -35,5 +35,11 @@ Forecast.prototype.get = function getWeather (latitude, longitude, time, callbac
         return callback(null, parsed)
       }
     })
+
+    res.setTimeout(5000, function () {
+      return callback(new Error('Timeout after 5 seconds'), null)
+    })
+  }).on('error', function (err) {
+    return callback(err, null)
   })
 }

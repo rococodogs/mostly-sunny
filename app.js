@@ -12,6 +12,9 @@ var weatherClient
 var DEFAULT_NUMBER_OF_RESULTS = 7
 var LOOKUP_INTERVAL_RATE = 1000 * 60 * 15 // 15 minutes
 
+var FORECAST_RETRY_MAX = 3
+var FORECAST_RETRY = 0
+
 var suspendedTimestamp = null
 var globalCoords
 var latestDataset
@@ -164,8 +167,18 @@ function init () {
 function queryWeatherData (coords) {
   if (!coords) coords = globalCoords
   var weatherClient = new Forecast(settings.forecast_api_key)
+
   return weatherClient.get(coords[0], coords[1], function (err, data) {
-    if (err) return [] /* i dunno, do something */
+    if (err) {
+      if (FORECAST_RETRY === FORECAST_RETRY_MAX) {
+        FORECAST_RETRY = 0
+        return mb.window.webContents.send('app:weather-data-error', err)
+      } else {
+        FORECAST_RETRY++
+        setTimeout(queryWeatherData, 3000)
+        return mb.window.webContents.send('app:weather-data-retry', FORECAST_RETRY, FORECAST_RETRY_MAX)
+      }
+    }
 
     var dataset = latestDataset = getDataset(settings.data_field, data)
     return mb.window.webContents.send('app:weather-data', dataset)
